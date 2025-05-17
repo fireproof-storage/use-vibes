@@ -66,6 +66,73 @@ export function getOverlayRoot(): HTMLElement | undefined {
 }
 
 /**
+ * Helper to create a centered image container for the fullscreen view
+ */
+function createImageContainer(): HTMLElement {
+  const imgContainer = document.createElement('div');
+  imgContainer.className = 'imggen-fullscreen-container';
+  // Style for vertical layout - image above, controls below
+  Object.assign(imgContainer.style, {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    width: '100%',
+    maxWidth: '90%', // leave some margin
+  });
+  return imgContainer;
+}
+
+/**
+ * Add controls panel below the image 
+ */
+function addControlsPanel(imgContainer: HTMLElement): void {
+  // Create controls container
+  const controls = document.createElement('div');
+  controls.className = 'imggen-fullscreen-controls';
+  Object.assign(controls.style, {
+    marginTop: '20px',
+    padding: '10px 20px',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: '8px',
+    display: 'flex',
+    gap: '15px',
+    alignItems: 'center',
+  });
+  
+  // Close Button
+  const closeBtn = document.createElement('button');
+  closeBtn.innerText = '✕ Close';
+  closeBtn.className = 'imggen-fullscreen-btn';
+  Object.assign(closeBtn.style, {
+    backgroundColor: '#444',
+    color: 'white',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  });
+  closeBtn.onclick = (e) => {
+    e.stopPropagation(); // Prevent container click from triggering
+    toggleOverlayVisibility(false);
+  };
+  
+  // Add buttons and info to controls
+  controls.appendChild(closeBtn);
+  
+  // Info text - image format, dimensions if available
+  const infoText = document.createElement('span');
+  infoText.innerText = 'Press ESC to close';
+  infoText.style.color = '#ccc';
+  infoText.style.fontSize = '14px';
+  controls.appendChild(infoText);
+  
+  // Add controls to container
+  imgContainer.appendChild(controls);
+}
+
+/**
  * Show or hide the overlay with the provided image
  */
 export function toggleOverlayVisibility(
@@ -180,23 +247,33 @@ export function toggleOverlayVisibility(
  */
 function displayBlobImage(container: HTMLElement, blob: Blob, alt: string): void {
   const src = URL.createObjectURL(blob);
+  const imgContainer = createImageContainer();
+  
   const img = document.createElement('img');
   img.className = 'imggen-fullscreen-image';
   img.src = src;
   img.alt = alt;
   img.onload = () => URL.revokeObjectURL(src); // Clean up object URL
-  container.appendChild(img);
+  
+  imgContainer.appendChild(img);
+  addControlsPanel(imgContainer);
+  container.appendChild(imgContainer);
 }
 
 /**
  * Display an image from a URL string
  */
 function displayUrlImage(container: HTMLElement, url: string, alt: string): void {
+  const imgContainer = createImageContainer();
+  
   const img = document.createElement('img');
   img.className = 'imggen-fullscreen-image';
   img.src = url;
   img.alt = alt;
-  container.appendChild(img);
+  
+  imgContainer.appendChild(img);
+  addControlsPanel(imgContainer);
+  container.appendChild(imgContainer);
 }
 
 /**
@@ -207,6 +284,8 @@ function displayFireproofFile(
   fileGetter: () => Promise<File>,
   alt: string
 ): void {
+  const imgContainer = createImageContainer();
+  
   // Show a loading placeholder first
   const placeHolderUrl = 'data:image/svg+xml;charset=UTF-8,' + 
     encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
@@ -218,7 +297,11 @@ function displayFireproofFile(
   img.className = 'imggen-fullscreen-image';
   img.src = placeHolderUrl;
   img.alt = alt;
-  container.appendChild(img);
+  imgContainer.appendChild(img);
+  
+  // Add controls even during loading
+  addControlsPanel(imgContainer);
+  container.appendChild(imgContainer);
   
   // Start loading the actual file
   try {
@@ -251,6 +334,8 @@ function displayFireproofFile(
  * Display an error image
  */
 function displayErrorImage(container: HTMLElement, message: string): void {
+  const imgContainer = createImageContainer();
+  
   const errorSvg = 'data:image/svg+xml;charset=UTF-8,' + 
     encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
     '<rect width="200" height="200" fill="#ffeeee"/>' +
@@ -261,5 +346,8 @@ function displayErrorImage(container: HTMLElement, message: string): void {
   img.className = 'imggen-fullscreen-image';
   img.src = errorSvg;
   img.alt = 'Error: ' + message;
-  container.appendChild(img);
+  
+  imgContainer.appendChild(img);
+  addControlsPanel(imgContainer);
+  container.appendChild(imgContainer);
 }
