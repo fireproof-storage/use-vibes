@@ -190,29 +190,38 @@ export function ImgGenDisplay({
     // Set up the overlay with document and version info for controls
     // Using a suppression directive to avoid TypeScript errors while maintaining the document structure
     // @ts-expect-error - document structure is compatible but TypeScript can't verify that
-    toggleOverlayVisibility(showFullscreenModal, currentFile, alt || 'Generated image', document, versionIndex);
-    
+    toggleOverlayVisibility(
+      showFullscreenModal,
+      currentFile,
+      alt || 'Generated image',
+      document,
+      versionIndex
+    );
+
     // Handle the callback for when overlayRoot is closed by click
     if (showFullscreenModal) {
       // Add a custom message listener to ensure React state stays in sync
       const handleOverlayCloseMessage = () => {
         setShowFullscreenModal(false);
       };
-      
+
       // Listen for version change events to update our React state
       const handleVersionChangeMessage = (event: CustomEvent) => {
         if (event.detail?.index !== undefined) {
           setVersionIndex(event.detail.index);
         }
       };
-      
+
       // Listen for custom events
       window.addEventListener('imggen-overlay-close', handleOverlayCloseMessage);
       window.addEventListener('imggen-version-change', handleVersionChangeMessage as EventListener);
-      
+
       return () => {
         window.removeEventListener('imggen-overlay-close', handleOverlayCloseMessage);
-        window.removeEventListener('imggen-version-change', handleVersionChangeMessage as EventListener);
+        window.removeEventListener(
+          'imggen-version-change',
+          handleVersionChangeMessage as EventListener
+        );
       };
     }
   }, [showFullscreenModal, currentFile, alt, document, versionIndex]);

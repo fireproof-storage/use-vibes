@@ -89,15 +89,17 @@ function createImageContainer(): HTMLElement {
  */
 interface DocWithVersions {
   _id?: string;
-  versions?: Array<{
-    prompt?: string;
-    timestamp?: number;
-    [key: string]: unknown;
-  }> | ReadonlyArray<{
-    prompt?: string;
-    timestamp?: number;
-    [key: string]: unknown;
-  }>;
+  versions?:
+    | Array<{
+        prompt?: string;
+        timestamp?: number;
+        [key: string]: unknown;
+      }>
+    | ReadonlyArray<{
+        prompt?: string;
+        timestamp?: number;
+        [key: string]: unknown;
+      }>;
   currentVersion?: number;
   [key: string]: unknown; // Allow additional properties for compatibility
 }
@@ -109,7 +111,7 @@ interface DocWithVersions {
  * @param versionIndex Current version index being displayed
  */
 function addControlsPanel(
-  imgContainer: HTMLElement, 
+  imgContainer: HTMLElement,
   docData?: DocWithVersions,
   versionIndex: number = 0
 ): void {
@@ -128,7 +130,7 @@ function addControlsPanel(
     width: 'auto',
     minWidth: '240px',
   });
-  
+
   // LEFT SIDE: Close Button
   const closeBtn = window.document.createElement('button');
   closeBtn.innerText = '✕'; // Just the X, no "Close" text
@@ -153,10 +155,10 @@ function addControlsPanel(
     // Dispatch custom event for React state sync
     dispatchOverlayCloseEvent();
   };
-  
+
   // Add close button to controls
   controls.appendChild(closeBtn);
-  
+
   // RIGHT SIDE: Version controls
   const versionControls = document.createElement('div');
   versionControls.className = 'imggen-fullscreen-version-controls';
@@ -165,10 +167,10 @@ function addControlsPanel(
     gap: '10px',
     alignItems: 'center',
   });
-  
+
   // Only add version controls if we have version data
   const totalVersions = docData?.versions?.length || 0;
-  
+
   if (totalVersions > 1) {
     // Previous button
     const prevBtn = window.document.createElement('button');
@@ -191,13 +193,13 @@ function addControlsPanel(
       padding: '0',
       cursor: versionIndex === 0 ? 'default' : 'pointer',
     });
-    
+
     // Version indicator
     const versionIndicator = window.document.createElement('span');
     versionIndicator.innerText = `${versionIndex + 1} / ${totalVersions}`;
     versionIndicator.style.color = '#ccc';
     versionIndicator.style.fontSize = '14px';
-    
+
     // Next button
     const nextBtn = window.document.createElement('button');
     nextBtn.innerHTML = '▶︎';
@@ -205,7 +207,8 @@ function addControlsPanel(
     nextBtn.title = 'Next version';
     nextBtn.disabled = versionIndex >= totalVersions - 1;
     Object.assign(nextBtn.style, {
-      backgroundColor: versionIndex >= totalVersions - 1 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+      backgroundColor:
+        versionIndex >= totalVersions - 1 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
       borderRadius: '50%',
       width: '30px',
       height: '30px',
@@ -219,34 +222,34 @@ function addControlsPanel(
       padding: '0',
       cursor: versionIndex >= totalVersions - 1 ? 'default' : 'pointer',
     });
-    
+
     // Add event handlers - these will dispatch custom events to notify React
     prevBtn.onclick = (e) => {
       e.stopPropagation();
       if (versionIndex > 0) {
-        const evt = new CustomEvent('imggen-version-change', { 
-          detail: { direction: 'prev', index: versionIndex - 1 } 
+        const evt = new CustomEvent('imggen-version-change', {
+          detail: { direction: 'prev', index: versionIndex - 1 },
         });
         window.dispatchEvent(evt);
       }
     };
-    
+
     nextBtn.onclick = (e) => {
       e.stopPropagation();
       if (versionIndex < totalVersions - 1) {
-        const evt = new CustomEvent('imggen-version-change', { 
-          detail: { direction: 'next', index: versionIndex + 1 } 
+        const evt = new CustomEvent('imggen-version-change', {
+          detail: { direction: 'next', index: versionIndex + 1 },
         });
         window.dispatchEvent(evt);
       }
     };
-    
+
     // Add buttons to controls
     versionControls.appendChild(prevBtn);
     versionControls.appendChild(versionIndicator);
     versionControls.appendChild(nextBtn);
   }
-  
+
   // Add ESC hint only when we don't have version controls
   if (totalVersions <= 1) {
     const infoText = window.document.createElement('span');
@@ -255,10 +258,10 @@ function addControlsPanel(
     infoText.style.fontSize = '14px';
     versionControls.appendChild(infoText);
   }
-  
+
   // Add version controls to right side
   controls.appendChild(versionControls);
-  
+
   // Add controls to container
   imgContainer.appendChild(controls);
 }
@@ -325,19 +328,25 @@ export function toggleOverlayVisibility(
   };
 
   // Debug logging
-  console.log('[OVERLAY] Image input type:', 
-    typeof imgFile, 
-    imgFile instanceof Blob ? 'is Blob' : 'not Blob', 
-    Object.prototype.toString.call(imgFile));
-  
+  console.log(
+    '[OVERLAY] Image input type:',
+    typeof imgFile,
+    imgFile instanceof Blob ? 'is Blob' : 'not Blob',
+    Object.prototype.toString.call(imgFile)
+  );
+
   if (typeof imgFile === 'object') {
-    console.log('[OVERLAY] Object keys:', Object.keys(imgFile)); 
+    console.log('[OVERLAY] Object keys:', Object.keys(imgFile));
     try {
-      console.log('[OVERLAY] Object dump:', JSON.stringify(imgFile, (key, value) => {
-        if (key === 'buffer' || key === 'data' || value instanceof ArrayBuffer) return '[binary data]';
-        return value;
-      }));
-    } catch(err) {
+      console.log(
+        '[OVERLAY] Object dump:',
+        JSON.stringify(imgFile, (key, value) => {
+          if (key === 'buffer' || key === 'data' || value instanceof ArrayBuffer)
+            return '[binary data]';
+          return value;
+        })
+      );
+    } catch (err) {
       console.log('[OVERLAY] Object is not JSON serializable', err);
     }
   }
@@ -347,48 +356,40 @@ export function toggleOverlayVisibility(
     // Case 1: Direct Blob/File object
     console.log('[OVERLAY] Case 1: Direct Blob/File');
     displayBlobImage(container, imgFile, alt, docData, versionIndex);
-  } 
-  else if (typeof imgFile === 'string') {
+  } else if (typeof imgFile === 'string') {
     // Case 2: String URL
     console.log('[OVERLAY] Case 2: String URL');
-    displayUrlImage(container, imgFile, alt, docData, versionIndex); 
-  } 
-  else if (typeof imgFile === 'object') {
+    displayUrlImage(container, imgFile, alt, docData, versionIndex);
+  } else if (typeof imgFile === 'object') {
     // Handle various object formats
     const fpObject = imgFile as FireproofFileMeta;
-    
+
     if (fpObject.url) {
       // Case 3a: Object with direct URL
       console.log('[OVERLAY] Case 3a: Object with URL property');
       displayUrlImage(container, fpObject.url, alt, docData, versionIndex);
-    }
-    else if (fpObject.src) {
+    } else if (fpObject.src) {
       // Case 3b: Object with src
       console.log('[OVERLAY] Case 3b: Object with src property');
       displayUrlImage(container, fpObject.src, alt, docData, versionIndex);
-    }
-    else if (fpObject.file instanceof Blob) {
+    } else if (fpObject.file instanceof Blob) {
       // Case 3c: Object with direct file that's a Blob
       console.log('[OVERLAY] Case 3c: Object with file property (Blob)');
       displayBlobImage(container, fpObject.file, alt, docData, versionIndex);
-    }
-    else if (fpObject.file && typeof fpObject.file === 'function') {
+    } else if (fpObject.file && typeof fpObject.file === 'function') {
       // Case 3d: Fireproof file method
       console.log('[OVERLAY] Case 3d: Fireproof file() method');
       displayFireproofFile(container, fpObject.file, alt, docData, versionIndex);
-    }
-    else if (fpObject.cid && fpObject.cid['/']) {
+    } else if (fpObject.cid && fpObject.cid['/']) {
       // Case 3e: IPFS CID
       console.log('[OVERLAY] Case 3e: IPFS CID object');
-      const ipfsUrl = `https://ipfs.io/ipfs/${fpObject.cid['/']}`;  
+      const ipfsUrl = `https://ipfs.io/ipfs/${fpObject.cid['/']}`;
       displayUrlImage(container, ipfsUrl, alt, docData, versionIndex);
-    }
-    else {
+    } else {
       console.warn('[OVERLAY] Unknown object format');
       displayErrorImage(container, 'Unknown image format', docData, versionIndex);
     }
-  }
-  else {
+  } else {
     console.warn('[OVERLAY] Unsupported image type:', typeof imgFile);
     displayErrorImage(container, 'Unsupported image type', docData, versionIndex);
   }
@@ -397,16 +398,22 @@ export function toggleOverlayVisibility(
 /**
  * Display an image from a direct Blob/File
  */
-function displayBlobImage(container: HTMLElement, blob: Blob, alt: string, docData?: DocWithVersions, versionIndex: number = 0): void {
+function displayBlobImage(
+  container: HTMLElement,
+  blob: Blob,
+  alt: string,
+  docData?: DocWithVersions,
+  versionIndex: number = 0
+): void {
   const src = URL.createObjectURL(blob);
   const imgContainer = createImageContainer();
-  
+
   const img = document.createElement('img');
   img.className = 'imggen-fullscreen-image';
   img.src = src;
   img.alt = alt;
   img.onload = () => URL.revokeObjectURL(src); // Clean up object URL
-  
+
   imgContainer.appendChild(img);
   addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
@@ -415,14 +422,20 @@ function displayBlobImage(container: HTMLElement, blob: Blob, alt: string, docDa
 /**
  * Display an image from a URL string
  */
-function displayUrlImage(container: HTMLElement, url: string, alt: string, docData?: DocWithVersions, versionIndex: number = 0): void {
+function displayUrlImage(
+  container: HTMLElement,
+  url: string,
+  alt: string,
+  docData?: DocWithVersions,
+  versionIndex: number = 0
+): void {
   const imgContainer = createImageContainer();
-  
+
   const img = document.createElement('img');
   img.className = 'imggen-fullscreen-image';
   img.src = url;
   img.alt = alt;
-  
+
   imgContainer.appendChild(img);
   addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
@@ -432,48 +445,56 @@ function displayUrlImage(container: HTMLElement, url: string, alt: string, docDa
  * Display a Fireproof file that needs async loading
  */
 function displayFireproofFile(
-  container: HTMLElement, 
+  container: HTMLElement,
   fileGetter: () => Promise<File>,
   alt: string,
   docData?: DocWithVersions,
   versionIndex: number = 0
 ): void {
   const imgContainer = createImageContainer();
-  
+
   // Show a loading placeholder first
-  const placeHolderUrl = 'data:image/svg+xml;charset=UTF-8,' + 
-    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
-    '<rect width="200" height="200" fill="#eee"/>' +
-    '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif">Loading...</text>' +
-    '</svg>');
-  
+  const placeHolderUrl =
+    'data:image/svg+xml;charset=UTF-8,' +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
+        '<rect width="200" height="200" fill="#eee"/>' +
+        '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif">Loading...</text>' +
+        '</svg>'
+    );
+
   const img = document.createElement('img');
   img.className = 'imggen-fullscreen-image';
   img.src = placeHolderUrl;
   img.alt = alt;
   imgContainer.appendChild(img);
-  
+
   // Add controls even during loading
   addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
-  
+
   // Start loading the actual file
   try {
     const filePromise = fileGetter();
     if (filePromise && typeof filePromise.then === 'function') {
-      filePromise.then(file => {
-        console.log('[OVERLAY] Fireproof file loaded successfully', file);
-        const objectUrl = URL.createObjectURL(file);
-        img.src = objectUrl;
-        img.onload = () => URL.revokeObjectURL(objectUrl);
-      }).catch(err => {
-        console.error('[OVERLAY] Error loading Fireproof file:', err);
-        img.src = 'data:image/svg+xml;charset=UTF-8,' + 
-          encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
-          '<rect width="200" height="200" fill="#ffeeee"/>' +
-          '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" fill="red">Error loading image</text>' +
-          '</svg>');
-      });
+      filePromise
+        .then((file) => {
+          console.log('[OVERLAY] Fireproof file loaded successfully', file);
+          const objectUrl = URL.createObjectURL(file);
+          img.src = objectUrl;
+          img.onload = () => URL.revokeObjectURL(objectUrl);
+        })
+        .catch((err) => {
+          console.error('[OVERLAY] Error loading Fireproof file:', err);
+          img.src =
+            'data:image/svg+xml;charset=UTF-8,' +
+            encodeURIComponent(
+              '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
+                '<rect width="200" height="200" fill="#ffeeee"/>' +
+                '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" fill="red">Error loading image</text>' +
+                '</svg>'
+            );
+        });
     } else {
       console.error('[OVERLAY] Fireproof file() did not return a Promise');
       displayErrorImage(container, 'Invalid file loader');
@@ -487,20 +508,28 @@ function displayFireproofFile(
 /**
  * Display an error image
  */
-function displayErrorImage(container: HTMLElement, message: string, docData?: DocWithVersions, versionIndex: number = 0): void {
+function displayErrorImage(
+  container: HTMLElement,
+  message: string,
+  docData?: DocWithVersions,
+  versionIndex: number = 0
+): void {
   const imgContainer = createImageContainer();
-  
-  const errorSvg = 'data:image/svg+xml;charset=UTF-8,' + 
-    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
-    '<rect width="200" height="200" fill="#ffeeee"/>' +
-    `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" fill="red">${message}</text>` +
-    '</svg>');
-    
+
+  const errorSvg =
+    'data:image/svg+xml;charset=UTF-8,' +
+    encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">' +
+        '<rect width="200" height="200" fill="#ffeeee"/>' +
+        `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" fill="red">${message}</text>` +
+        '</svg>'
+    );
+
   const img = document.createElement('img');
   img.className = 'imggen-fullscreen-image';
   img.src = errorSvg;
   img.alt = 'Error: ' + message;
-  
+
   imgContainer.appendChild(img);
   addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
