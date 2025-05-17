@@ -89,8 +89,17 @@ function createImageContainer(): HTMLElement {
  */
 interface DocWithVersions {
   _id?: string;
-  versions?: Array<any>;
+  versions?: Array<{
+    prompt?: string;
+    timestamp?: number;
+    [key: string]: unknown;
+  }> | ReadonlyArray<{
+    prompt?: string;
+    timestamp?: number;
+    [key: string]: unknown;
+  }>;
   currentVersion?: number;
+  [key: string]: unknown; // Allow additional properties for compatibility
 }
 
 /**
@@ -399,7 +408,7 @@ function displayBlobImage(container: HTMLElement, blob: Blob, alt: string, docDa
   img.onload = () => URL.revokeObjectURL(src); // Clean up object URL
   
   imgContainer.appendChild(img);
-  addControlsPanel(imgContainer);
+  addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
 }
 
@@ -415,7 +424,7 @@ function displayUrlImage(container: HTMLElement, url: string, alt: string, docDa
   img.alt = alt;
   
   imgContainer.appendChild(img);
-  addControlsPanel(imgContainer);
+  addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
 }
 
@@ -493,6 +502,6 @@ function displayErrorImage(container: HTMLElement, message: string, docData?: Do
   img.alt = 'Error: ' + message;
   
   imgContainer.appendChild(img);
-  addControlsPanel(imgContainer);
+  addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
 }
