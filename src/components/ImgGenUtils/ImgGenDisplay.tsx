@@ -187,8 +187,33 @@ export function ImgGenDisplay({
 
   // Toggle overlay visibility whenever fullscreen state changes
   React.useEffect(() => {
-    toggleOverlayVisibility(showFullscreenModal, currentFile, alt || 'Generated image');
-  }, [showFullscreenModal, currentFile, alt]);
+    // Set up the overlay with document and version info for controls
+    toggleOverlayVisibility(showFullscreenModal, currentFile, alt || 'Generated image', document, versionIndex);
+    
+    // Handle the callback for when overlayRoot is closed by click
+    if (showFullscreenModal) {
+      // Add a custom message listener to ensure React state stays in sync
+      const handleOverlayCloseMessage = () => {
+        setShowFullscreenModal(false);
+      };
+      
+      // Listen for version change events to update our React state
+      const handleVersionChangeMessage = (event: CustomEvent) => {
+        if (event.detail?.index !== undefined) {
+          setVersionIndex(event.detail.index);
+        }
+      };
+      
+      // Listen for custom events
+      window.addEventListener('imggen-overlay-close', handleOverlayCloseMessage);
+      window.addEventListener('imggen-version-change', handleVersionChangeMessage as EventListener);
+      
+      return () => {
+        window.removeEventListener('imggen-overlay-close', handleOverlayCloseMessage);
+        window.removeEventListener('imggen-version-change', handleVersionChangeMessage as EventListener);
+      };
+    }
+  }, [showFullscreenModal, currentFile, alt, document, versionIndex]);
 
   return (
     <div className={combineClasses('imggen-root', className, classes.root)} title={promptText}>

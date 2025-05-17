@@ -85,11 +85,27 @@ function createImageContainer(): HTMLElement {
 }
 
 /**
- * Add controls panel below the image 
+ * Interface for document with version info
  */
-function addControlsPanel(imgContainer: HTMLElement): void {
+interface DocWithVersions {
+  _id?: string;
+  versions?: Array<any>;
+  currentVersion?: number;
+}
+
+/**
+ * Add controls panel below the image
+ * @param imgContainer The container element to add controls to
+ * @param docData Optional document with version info to enable version controls
+ * @param versionIndex Current version index being displayed
+ */
+function addControlsPanel(
+  imgContainer: HTMLElement, 
+  docData?: DocWithVersions,
+  versionIndex: number = 0
+): void {
   // Create controls container
-  const controls = document.createElement('div');
+  const controls = window.document.createElement('div');
   controls.className = 'imggen-fullscreen-controls';
   Object.assign(controls.style, {
     marginTop: '20px',
@@ -99,9 +115,12 @@ function addControlsPanel(imgContainer: HTMLElement): void {
     display: 'flex',
     gap: '15px',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    width: 'auto',
+    minWidth: '320px',
   });
   
-  // Close Button
+  // LEFT SIDE: Close Button
   const closeBtn = document.createElement('button');
   closeBtn.innerText = '✕ Close';
   closeBtn.className = 'imggen-fullscreen-btn';
@@ -116,21 +135,117 @@ function addControlsPanel(imgContainer: HTMLElement): void {
   closeBtn.onclick = (e) => {
     e.stopPropagation(); // Prevent container click from triggering
     toggleOverlayVisibility(false);
+    // Dispatch custom event for React state sync
+    dispatchOverlayCloseEvent();
   };
   
-  // Add buttons and info to controls
+  // Add close button to controls
   controls.appendChild(closeBtn);
   
-  // Info text - image format, dimensions if available
-  const infoText = document.createElement('span');
-  infoText.innerText = 'Press ESC to close';
-  infoText.style.color = '#ccc';
-  infoText.style.fontSize = '14px';
-  controls.appendChild(infoText);
+  // RIGHT SIDE: Version controls
+  const versionControls = document.createElement('div');
+  versionControls.className = 'imggen-fullscreen-version-controls';
+  Object.assign(versionControls.style, {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+  });
+  
+  // Only add version controls if we have version data
+  const totalVersions = docData?.versions?.length || 0;
+  
+  if (totalVersions > 1) {
+    // Previous button
+    const prevBtn = window.document.createElement('button');
+    prevBtn.innerHTML = '◀︎';
+    prevBtn.className = 'imggen-fullscreen-btn';
+    prevBtn.title = 'Previous version';
+    prevBtn.disabled = versionIndex === 0;
+    Object.assign(prevBtn.style, {
+      backgroundColor: versionIndex === 0 ? '#333' : '#444',
+      opacity: versionIndex === 0 ? '0.5' : '1',
+      color: 'white',
+      border: 'none',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: versionIndex === 0 ? 'default' : 'pointer',
+    });
+    
+    // Version indicator
+    const versionIndicator = window.document.createElement('span');
+    versionIndicator.innerText = `${versionIndex + 1} / ${totalVersions}`;
+    versionIndicator.style.color = '#ccc';
+    versionIndicator.style.fontSize = '14px';
+    
+    // Next button
+    const nextBtn = window.document.createElement('button');
+    nextBtn.innerHTML = '▶︎';
+    nextBtn.className = 'imggen-fullscreen-btn';
+    nextBtn.title = 'Next version';
+    nextBtn.disabled = versionIndex >= totalVersions - 1;
+    Object.assign(nextBtn.style, {
+      backgroundColor: versionIndex >= totalVersions - 1 ? '#333' : '#444',
+      opacity: versionIndex >= totalVersions - 1 ? '0.5' : '1',
+      color: 'white',
+      border: 'none',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: versionIndex >= totalVersions - 1 ? 'default' : 'pointer',
+    });
+    
+    // Add event handlers - these will dispatch custom events to notify React
+    prevBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (versionIndex > 0) {
+        const evt = new CustomEvent('imggen-version-change', { 
+          detail: { direction: 'prev', index: versionIndex - 1 } 
+        });
+        window.dispatchEvent(evt);
+      }
+    };
+    
+    nextBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (versionIndex < totalVersions - 1) {
+        const evt = new CustomEvent('imggen-version-change', { 
+          detail: { direction: 'next', index: versionIndex + 1 } 
+        });
+        window.dispatchEvent(evt);
+      }
+    };
+    
+    // Add buttons to controls
+    versionControls.appendChild(prevBtn);
+    versionControls.appendChild(versionIndicator);
+    versionControls.appendChild(nextBtn);
+  }
+  
+  // Add ESC hint only when we don't have version controls
+  if (totalVersions <= 1) {
+    const infoText = window.document.createElement('span');
+    infoText.innerText = 'Press ESC to close';
+    infoText.style.color = '#ccc';
+    infoText.style.fontSize = '14px';
+    versionControls.appendChild(infoText);
+  }
+  
+  // Add version controls to right side
+  controls.appendChild(versionControls);
   
   // Add controls to container
   imgContainer.appendChild(controls);
 }
+
+/**
+ * Custom event for overlay close to keep React state in sync
+ */
+const dispatchOverlayCloseEvent = () => {
+  if (typeof window !== 'undefined') {
+    // Use a custom event to notify React components
+    const closeEvent = new Event('imggen-overlay-close');
+    window.dispatchEvent(closeEvent);
+  }
+};
 
 /**
  * Show or hide the overlay with the provided image
@@ -138,7 +253,9 @@ function addControlsPanel(imgContainer: HTMLElement): void {
 export function toggleOverlayVisibility(
   show: boolean,
   imgFile?: ImageInput,
-  alt: string = 'Generated image'
+  alt: string = 'Generated image',
+  docData?: DocWithVersions,
+  versionIndex: number = 0
 ): void {
   const root = getOverlayRoot();
   if (!root) return;
@@ -146,8 +263,12 @@ export function toggleOverlayVisibility(
   // Toggle visibility
   root.style.display = show ? 'flex' : 'none';
 
-  // If hiding, just update display and return
+  // If hiding, just update display and cleanup click handler
   if (!show) {
+    // Clear the onclick handler when hiding to prevent stale closures
+    root.onclick = null;
+    // Need to clear innerHTML to prevent memory leaks and stale DOM refs
+    root.innerHTML = '';
     return;
   }
 
@@ -170,7 +291,11 @@ export function toggleOverlayVisibility(
   root.appendChild(container);
 
   // Clicking anywhere closes overlay
-  root.onclick = () => toggleOverlayVisibility(false);
+  root.onclick = () => {
+    toggleOverlayVisibility(false);
+    // Dispatch custom event for React state sync
+    dispatchOverlayCloseEvent();
+  };
 
   // Debug logging
   console.log('[OVERLAY] Image input type:', 
@@ -194,12 +319,12 @@ export function toggleOverlayVisibility(
   if (imgFile instanceof Blob) {
     // Case 1: Direct Blob/File object
     console.log('[OVERLAY] Case 1: Direct Blob/File');
-    displayBlobImage(container, imgFile, alt);
+    displayBlobImage(container, imgFile, alt, docData, versionIndex);
   } 
   else if (typeof imgFile === 'string') {
     // Case 2: String URL
     console.log('[OVERLAY] Case 2: String URL');
-    displayUrlImage(container, imgFile, alt); 
+    displayUrlImage(container, imgFile, alt, docData, versionIndex); 
   } 
   else if (typeof imgFile === 'object') {
     // Handle various object formats
@@ -208,44 +333,44 @@ export function toggleOverlayVisibility(
     if (fpObject.url) {
       // Case 3a: Object with direct URL
       console.log('[OVERLAY] Case 3a: Object with URL property');
-      displayUrlImage(container, fpObject.url, alt);
+      displayUrlImage(container, fpObject.url, alt, docData, versionIndex);
     }
     else if (fpObject.src) {
       // Case 3b: Object with src
       console.log('[OVERLAY] Case 3b: Object with src property');
-      displayUrlImage(container, fpObject.src, alt);
+      displayUrlImage(container, fpObject.src, alt, docData, versionIndex);
     }
     else if (fpObject.file instanceof Blob) {
       // Case 3c: Object with direct file that's a Blob
       console.log('[OVERLAY] Case 3c: Object with file property (Blob)');
-      displayBlobImage(container, fpObject.file, alt);
+      displayBlobImage(container, fpObject.file, alt, docData, versionIndex);
     }
     else if (fpObject.file && typeof fpObject.file === 'function') {
       // Case 3d: Fireproof file method
       console.log('[OVERLAY] Case 3d: Fireproof file() method');
-      displayFireproofFile(container, fpObject.file, alt);
+      displayFireproofFile(container, fpObject.file, alt, docData, versionIndex);
     }
     else if (fpObject.cid && fpObject.cid['/']) {
       // Case 3e: IPFS CID
       console.log('[OVERLAY] Case 3e: IPFS CID object');
       const ipfsUrl = `https://ipfs.io/ipfs/${fpObject.cid['/']}`;  
-      displayUrlImage(container, ipfsUrl, alt);
+      displayUrlImage(container, ipfsUrl, alt, docData, versionIndex);
     }
     else {
       console.warn('[OVERLAY] Unknown object format');
-      displayErrorImage(container, 'Unknown image format');
+      displayErrorImage(container, 'Unknown image format', docData, versionIndex);
     }
   }
   else {
     console.warn('[OVERLAY] Unsupported image type:', typeof imgFile);
-    displayErrorImage(container, 'Unsupported image type');
+    displayErrorImage(container, 'Unsupported image type', docData, versionIndex);
   }
 }
 
 /**
  * Display an image from a direct Blob/File
  */
-function displayBlobImage(container: HTMLElement, blob: Blob, alt: string): void {
+function displayBlobImage(container: HTMLElement, blob: Blob, alt: string, docData?: DocWithVersions, versionIndex: number = 0): void {
   const src = URL.createObjectURL(blob);
   const imgContainer = createImageContainer();
   
@@ -263,7 +388,7 @@ function displayBlobImage(container: HTMLElement, blob: Blob, alt: string): void
 /**
  * Display an image from a URL string
  */
-function displayUrlImage(container: HTMLElement, url: string, alt: string): void {
+function displayUrlImage(container: HTMLElement, url: string, alt: string, docData?: DocWithVersions, versionIndex: number = 0): void {
   const imgContainer = createImageContainer();
   
   const img = document.createElement('img');
@@ -282,7 +407,9 @@ function displayUrlImage(container: HTMLElement, url: string, alt: string): void
 function displayFireproofFile(
   container: HTMLElement, 
   fileGetter: () => Promise<File>,
-  alt: string
+  alt: string,
+  docData?: DocWithVersions,
+  versionIndex: number = 0
 ): void {
   const imgContainer = createImageContainer();
   
@@ -300,7 +427,7 @@ function displayFireproofFile(
   imgContainer.appendChild(img);
   
   // Add controls even during loading
-  addControlsPanel(imgContainer);
+  addControlsPanel(imgContainer, docData, versionIndex);
   container.appendChild(imgContainer);
   
   // Start loading the actual file
@@ -333,7 +460,7 @@ function displayFireproofFile(
 /**
  * Display an error image
  */
-function displayErrorImage(container: HTMLElement, message: string): void {
+function displayErrorImage(container: HTMLElement, message: string, docData?: DocWithVersions, versionIndex: number = 0): void {
   const imgContainer = createImageContainer();
   
   const errorSvg = 'data:image/svg+xml;charset=UTF-8,' + 
