@@ -155,7 +155,7 @@ export function ImgGenDisplay({
   // Super simple fullscreen state - completely independent
   const [showFullscreenModal, setShowFullscreenModal] = React.useState(false);
 
-  // Simple open/close functions with no side effects
+  // Simple open/close functions
   const openFullscreenModal = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -254,18 +254,14 @@ export function ImgGenDisplay({
         />
       )}
 
-      {/* Simple fullscreen modal - any click closes it */}
+      {/* Ultra-simple fullscreen modal with just ImgFile */}
       {showFullscreenModal && (
         <div className="imggen-fullscreen-overlay" onClick={closeFullscreenModal}>
-          <div className="imggen-fullscreen-image-container" onClick={closeFullscreenModal}>
-            {/* Completely independent ImgFile instance */}
-            <ImgFile
-              file={currentFile}
-              className="imggen-fullscreen-image"
-              alt={alt || 'Generated image'}
-              onClick={closeFullscreenModal}
-            />
-          </div>
+          <ImgFile
+            file={currentFile}
+            className="imggen-fullscreen-image"
+            alt={alt || 'Generated image'}
+          />
         </div>
       )}
     </div>

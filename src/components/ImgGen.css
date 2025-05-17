@@ -97,7 +97,7 @@
   opacity: 1 !important;
 }
 
-/* Fullscreen overlay */
+/* Ultra-minimal fullscreen overlay - absolute bare minimum CSS */
 .imggen-fullscreen-overlay {
   position: fixed;
   top: 0;
@@ -108,46 +108,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2147483647; /* Maximum z-index value to ensure it's above everything */
-  animation: fade-in 150ms ease forwards;
-  /* Hardware acceleration to prevent flickering on mouse move */
-  transform: translateZ(0);
-  will-change: transform;
-  /* Ensure content doesn't trigger mouse events under it */
-  pointer-events: auto;
+  z-index: 2147483647; /* Maximum z-index */
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Fullscreen image container */
-.imggen-fullscreen-image-container {
-  position: relative;
-  max-width: 90%;
-  max-height: 90vh;
-  z-index: 2147483647; /* Same as overlay to ensure it's visible */
-  /* Hardware acceleration to prevent flickering */
-  transform: translateZ(0);
-  will-change: transform;
-  /* Isolate this element to prevent event bubbling to parent */
-  isolation: isolate;
-  /* Prevent mouse events from affecting elements below */
-  pointer-events: auto;
-}
-
-/* Fullscreen image */
+/* Fullscreen image sizing */
 .imggen-fullscreen-image {
-  display: block;
-  max-width: 100%;
+  max-width: 90vw;
   max-height: 90vh;
   object-fit: contain;
-  /* Hardware acceleration and isolation */
-  transform: translateZ(0);
-  will-change: transform;
-  /* Prevent mouse interaction issues */
-  pointer-events: none;
 }
 
 
