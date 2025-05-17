@@ -270,18 +270,30 @@
   position: absolute;
   bottom: 10px;
   left: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #fff;
-  opacity: 0.5;
+  z-index: 20;
+  background-color: var(--imggen-button-bg);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 0;
+  border: none;
+  font-size: 16px;
+  opacity: 0;
   transition: opacity var(--imggen-transition-speed) ease;
+  padding: 0;
 }
 
+/* Show the info button on hover over the container */
+.imggen-root:hover .imggen-info-button {
+  opacity: 0.7;
+}
+
+/* Make the button more visible when hovered directly */
 .imggen-info-button:hover {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 /* Delete button (top right corner) */

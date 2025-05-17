@@ -242,7 +242,8 @@ export function ImgGenDisplay({
         <button
           aria-label="Image information"
           onClick={toggleOverlay}
-          className={combineClasses('imggen-info-button', classes.button)}
+          className="imggen-info-button"
+          title="View image information"
         >
           ⓘ
         </button>
