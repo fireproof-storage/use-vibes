@@ -6,7 +6,17 @@ import './App.css';
 
 // Memoized version of ImgFile to prevent unnecessary re-renders and network requests
 const MemoizedImgFile = React.memo(
-  ({ file, className, alt, style }: { file: File; className?: string; alt: string; style?: React.CSSProperties }) => {
+  ({
+    file,
+    className,
+    alt,
+    style,
+  }: {
+    file: File;
+    className?: string;
+    alt: string;
+    style?: React.CSSProperties;
+  }) => {
     return <ImgFile file={file} className={className} alt={alt} style={style} />;
   },
   // Custom comparison function to prevent re-renders when irrelevant props change
@@ -181,7 +191,10 @@ function App() {
       )}
 
       {/* Raw ImgFile component for testing hover behavior */}
-      <div className="raw-imgfile-test" style={{ marginTop: '20px', padding: '20px', border: '1px solid #ccc' }}>
+      <div
+        className="raw-imgfile-test"
+        style={{ marginTop: '20px', padding: '20px', border: '1px solid #ccc' }}
+      >
         <h3>Raw ImgFile Component (for hover testing)</h3>
         <div>
           <p>Hover over this image to check network requests:</p>
@@ -192,16 +205,16 @@ function App() {
                 <>
                   <div className="memoized-wrapper" style={{ marginBottom: '20px' }}>
                     <h4>Memoized ImgFile (optimized)</h4>
-                    <MemoizedImgFile 
-                      file={imageDocuments[0]._files.v1 as File} 
+                    <MemoizedImgFile
+                      file={imageDocuments[0]._files.v1 as File}
                       alt="Test hover behavior"
                       style={{ width: '100%', maxWidth: '400px' }}
                     />
                   </div>
                   <div className="raw-wrapper">
                     <h4>Raw ImgFile (original)</h4>
-                    <ImgFile 
-                      file={imageDocuments[0]._files.v1 as File} 
+                    <ImgFile
+                      file={imageDocuments[0]._files.v1 as File}
                       alt="Test hover behavior"
                       style={{ width: '100%', maxWidth: '400px' }}
                     />
@@ -210,7 +223,14 @@ function App() {
               ) : (
                 <div>
                   <p>Available file keys: {Object.keys(imageDocuments[0]._files).join(', ')}</p>
-                  <pre style={{ maxHeight: '200px', overflow: 'auto', backgroundColor: '#f5f5f5', padding: '10px' }}>
+                  <pre
+                    style={{
+                      maxHeight: '200px',
+                      overflow: 'auto',
+                      backgroundColor: '#f5f5f5',
+                      padding: '10px',
+                    }}
+                  >
                     {JSON.stringify(imageDocuments[0], null, 2)}
                   </pre>
                 </div>

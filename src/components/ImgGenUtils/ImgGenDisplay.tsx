@@ -18,6 +18,7 @@ export function ImgGenDisplay({
   onPromptEdit,
   classes = defaultClasses,
 }: ImgGenDisplayProps) {
+  // Basic state for overlay visibility
   const [isOverlayOpen, setIsOverlayOpen] = React.useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
 
@@ -151,14 +152,59 @@ export function ImgGenDisplay({
       ? (document._files[fileKey] as File)
       : (document._files?.image as File);
 
+  // Super simple fullscreen state - completely independent
+  const [showFullscreenModal, setShowFullscreenModal] = React.useState(false);
+
+  // Simple open/close functions with no side effects
+  const openFullscreenModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowFullscreenModal(true);
+  };
+
+  const closeFullscreenModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowFullscreenModal(false);
+  };
+
+  // Simple Escape key handler for modal
+  React.useEffect(() => {
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showFullscreenModal) {
+        closeFullscreenModal();
+      }
+    };
+
+    if (showFullscreenModal) {
+      window.addEventListener('keydown', handleEscKey);
+      return () => window.removeEventListener('keydown', handleEscKey);
+    }
+  }, [showFullscreenModal]);
+
   return (
     <div className={combineClasses('imggen-root', className, classes.root)} title={promptText}>
-      <ImgFile
-        file={currentFile}
-        className={combineClasses('imggen-image', classes.image)}
-        alt={alt || 'Generated image'}
-        style={{ width: '100%' }}
-      />
+      {/* Image container with image and expand button */}
+      <div className="imggen-image-container">
+        <ImgFile
+          file={currentFile}
+          className={combineClasses('imggen-image', classes.image)}
+          alt={alt || 'Generated image'}
+          style={{ width: '100%' }}
+        />
+
+        {/* Expand button that shows on hover via CSS */}
+        <button
+          className="imggen-expand-button"
+          onClick={openFullscreenModal}
+          aria-label="View full-size image"
+          title="View full-size image"
+        >
+          ⤢
+        </button>
+      </div>
 
       {/* Info button - visible when overlay is closed and showOverlay is true */}
       {!isOverlayOpen && showOverlay && (
@@ -206,6 +252,21 @@ export function ImgGenDisplay({
           handleDeleteConfirm={handleDeleteConfirm}
           handleCancelDelete={handleCancelDelete}
         />
+      )}
+
+      {/* Simple fullscreen modal - any click closes it */}
+      {showFullscreenModal && (
+        <div className="imggen-fullscreen-overlay" onClick={closeFullscreenModal}>
+          <div className="imggen-fullscreen-image-container" onClick={closeFullscreenModal}>
+            {/* Completely independent ImgFile instance */}
+            <ImgFile
+              file={currentFile}
+              className="imggen-fullscreen-image"
+              alt={alt || 'Generated image'}
+              onClick={closeFullscreenModal}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

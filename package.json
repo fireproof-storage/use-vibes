@@ -29,12 +29,12 @@
     "dev:build": "tsc --watch",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix --rule 'no-unused-vars: 1' --rule 'no-empty: 1' --rule '@typescript-eslint/no-unused-vars: 1'",
-    "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write \"./**/*.{js,jsx,ts,tsx,json,md}\" > /dev/null 2>&1",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test"
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test && pnpm build"
   },
   "keywords": [
     "ai",
