@@ -6,6 +6,7 @@ import { getCurrentFileKey, getPromptInfo, getVersionInfo } from './ImgGenDispla
 import { DeleteConfirmationOverlay } from './overlays/DeleteConfirmationOverlay';
 import { ImageOverlay } from './overlays/ImageOverlay';
 import { combineClasses, defaultClasses } from '../../utils/style-utils';
+import { toggleOverlayVisibility } from '../../utils/overlayRoot';
 
 // Component for displaying the generated image
 export function ImgGenDisplay({
@@ -184,6 +185,11 @@ export function ImgGenDisplay({
     }
   }, [showFullscreenModal]);
 
+  // Toggle overlay visibility whenever fullscreen state changes
+  React.useEffect(() => {
+    toggleOverlayVisibility(showFullscreenModal, currentFile, alt || 'Generated image');
+  }, [showFullscreenModal, currentFile, alt]);
+
   return (
     <div className={combineClasses('imggen-root', className, classes.root)} title={promptText}>
       {/* Image container with image and expand button */}
@@ -254,16 +260,7 @@ export function ImgGenDisplay({
         />
       )}
 
-      {/* Ultra-simple fullscreen modal with just ImgFile */}
-      {showFullscreenModal && (
-        <div className="imggen-fullscreen-overlay" onClick={closeFullscreenModal}>
-          <ImgFile
-            file={currentFile}
-            className="imggen-fullscreen-image"
-            alt={alt || 'Generated image'}
-          />
-        </div>
-      )}
+      {/* Fullscreen modal now handled by toggleOverlayVisibility in useEffect */}
     </div>
   );
 }

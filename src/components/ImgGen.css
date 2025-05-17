@@ -109,13 +109,18 @@
   align-items: center;
   justify-content: center;
   z-index: 2147483647; /* Maximum z-index */
+  contain: paint; /* prevent occlusion checks under the overlay */
 }
 
 /* Fullscreen image sizing */
 .imggen-fullscreen-image {
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 100vw; /* avoid fractional pixels that cause retina snap */
+  height: auto;
+  max-height: 100vh;
   object-fit: contain;
+  /* Nudge onto integer pixel grid to prevent sub-pixel oscillation */
+  transform: scale(0.999);
+  pointer-events: auto; /* swallow cursor so it never hits layers below */
 }
 
 
