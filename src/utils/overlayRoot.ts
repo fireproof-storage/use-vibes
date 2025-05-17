@@ -117,20 +117,26 @@ function addControlsPanel(
     alignItems: 'center',
     justifyContent: 'space-between',
     width: 'auto',
-    minWidth: '320px',
+    minWidth: '240px',
   });
   
   // LEFT SIDE: Close Button
-  const closeBtn = document.createElement('button');
-  closeBtn.innerText = '✕ Close';
-  closeBtn.className = 'imggen-fullscreen-btn';
+  const closeBtn = window.document.createElement('button');
+  closeBtn.innerText = '✕'; // Just the X, no "Close" text
+  closeBtn.className = 'imggen-fullscreen-close-btn';
   Object.assign(closeBtn.style, {
-    backgroundColor: '#444',
-    color: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Same as delete button
+    borderRadius: '50%',
+    width: '30px',
+    height: '30px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     border: 'none',
-    padding: '8px 12px',
-    borderRadius: '4px',
-    cursor: 'pointer',
+    fontSize: '16px',
+    opacity: '0.7',
+    transition: 'opacity 0.2s ease',
+    padding: '0',
   });
   closeBtn.onclick = (e) => {
     e.stopPropagation(); // Prevent container click from triggering
@@ -162,12 +168,18 @@ function addControlsPanel(
     prevBtn.title = 'Previous version';
     prevBtn.disabled = versionIndex === 0;
     Object.assign(prevBtn.style, {
-      backgroundColor: versionIndex === 0 ? '#333' : '#444',
-      opacity: versionIndex === 0 ? '0.5' : '1',
-      color: 'white',
+      backgroundColor: versionIndex === 0 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+      borderRadius: '50%',
+      width: '30px',
+      height: '30px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       border: 'none',
-      padding: '8px 12px',
-      borderRadius: '4px',
+      fontSize: '14px',
+      opacity: versionIndex === 0 ? '0.4' : '0.7',
+      transition: 'opacity 0.2s ease',
+      padding: '0',
       cursor: versionIndex === 0 ? 'default' : 'pointer',
     });
     
@@ -184,12 +196,18 @@ function addControlsPanel(
     nextBtn.title = 'Next version';
     nextBtn.disabled = versionIndex >= totalVersions - 1;
     Object.assign(nextBtn.style, {
-      backgroundColor: versionIndex >= totalVersions - 1 ? '#333' : '#444',
-      opacity: versionIndex >= totalVersions - 1 ? '0.5' : '1',
-      color: 'white',
+      backgroundColor: versionIndex >= totalVersions - 1 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+      borderRadius: '50%',
+      width: '30px',
+      height: '30px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       border: 'none',
-      padding: '8px 12px',
-      borderRadius: '4px',
+      fontSize: '14px',
+      opacity: versionIndex >= totalVersions - 1 ? '0.4' : '0.7',
+      transition: 'opacity 0.2s ease',
+      padding: '0',
       cursor: versionIndex >= totalVersions - 1 ? 'default' : 'pointer',
     });
     
